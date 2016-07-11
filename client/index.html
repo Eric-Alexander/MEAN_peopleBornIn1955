@@ -1,0 +1,90 @@
+<!DOCTYPE HTML>
+<html ng-app='HelloSir'>
+<head>
+	<meta charset="utf-8">
+	<title>Those born in 1955</title>
+	<script src='/angular/angular.js'></script>
+	<script src='/angular-route/angular-route.js'></script>
+	<style type="text/css">
+		table { border-spacing: 155px 30px; }
+	</style>
+</head>
+<body ng-controller='peopleController'>
+	<h1>A list of humans born in 1955:</h1>
+	<h4>Know of any specimens to add? Input here:</h4>
+	<form>
+		<input type='text' ng-model='newPerson.name'>
+		<input type='submit' value='Add Human' ng-click='personAdd(newPerson)'>
+	</form><br>
+	<fieldset>
+		<table>
+			<tr>
+				<th>Name:</th>
+				<th>Action:</th>
+			</tr>
+	<tr ng-repeat="x in people">
+		<td>{{x.name}}</td>
+		<td><input type='submit' value='remove' ng-click="delpeople(x)"></td>
+	</tr>
+</table>
+	
+	</fieldset>
+</body>
+	<script type="text/javascript">
+	var myPeople=angular.module('HelloSir', ['ngRoute']);
+	//include $http inside of myFactory function to send factory methods to universal routes
+	myPeople.factory('peopleFactory', function($http){
+		var factory={};
+		var people=[];
+		factory.index=function(callback){
+			console.log('~~~~~~~~~~~~~ factory is sending request to pull database, sir ~~~~~~~~~~~~~~');
+			$http.get('/people').success(function(people){
+				console.log(people);
+				callback(people);
+			});
+			return people;
+		}
+		factory.create=function(newPerson, callback){
+			$http.post('/people/new', newPerson).success(function(output){
+				callback();
+			});
+		}
+		factory.delete=function(x, callback){
+			console.log(x);
+			$http.delete('/people/'+x._id).success(function(outback){
+				callback(outback);
+			});
+			// var j = "/poeple/";
+			// var g = x._id;
+			// var p = j+g;
+			// console.log(p);
+		}
+		return factory;
+	});
+	myPeople.controller('peopleController', function($scope, peopleFactory){
+		peopleFactory.index(function(halo){
+			console.log(halo);
+			$scope.people = halo;
+		});
+		$scope.personAdd=function(newPerson){
+			peopleFactory.create(newPerson, function(){
+				$scope.newPerson={};
+				peopleFactory.index(function(halo){
+					$scope.people=halo;
+				});
+			});
+		}
+		$scope.delpeople=function(x){
+			console.log(x+"I NEED INTel");
+			$scope.people.indexOf(x);
+			peopleFactory.delete(x, function(){
+				$scope.people={};
+				peopleFactory.index(function(halo){
+					$scope.people=halo;
+				});
+			});
+		}
+	});
+
+	</script>
+</html>
